@@ -1,63 +1,26 @@
-// src/components/QuestionList.js or similar component file
+import { useState, useEffect } from 'react';
+import React from 'react';
+import QuestionItem from './QuestionItem';
 
-import React, { useState, useEffect } from 'react';
-
-const QuestionList = () => {
+function QuestionList() {
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      const response = await fetch('http://localhost:4000/questions');
-      const data = await response.json();
-      setQuestions(data);
-    };
-    fetchQuestions();
-  }, []);
-
-  const handleDropdownChange = async (event, questionId) => {
-    const newCorrectIndex = parseInt(event.target.value, 10);
-    try {
-      await fetch(`http://localhost:4000/questions/${questionId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ correctIndex: newCorrectIndex }),
+    fetch('http://localhost:4000/questions')
+      .then((response) => response.json())
+      .then((questions) => {
+        setQuestions(questions);
       });
-      setQuestions((prevQuestions) =>
-        prevQuestions.map((q) =>
-          q.id === questionId ? { ...q, correctIndex: newCorrectIndex } : q
-        )
-      );
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
+  }, []);
+  const displayQuestions = questions.map((question) => {
+    return <QuestionItem question={question} key={question.id} questions={questions} setQuestions={setQuestions}/>;
+  });
   return (
-    <ul>
-      {questions.map((question) => (
-        <li key={question.id}>
-          <h4>Question {question.id}</h4>
-          <h5>Prompt: {question.prompt}</h5>
-          <label>
-            Correct Answer:
-            <select
-              value={question.correctIndex}
-              onChange={(event) => handleDropdownChange(event, question.id)}
-            >
-              {question.answers.map((answer, index) => (
-                <option key={index} value={index}>
-                  {answer}
-                </option>
-              ))}
-            </select>
-          </label>
-        </li>
-      ))}
-    </ul>
+    <section>
+      <h1>Quiz Questions</h1>
+      <ul>{displayQuestions}</ul>
+    </section>
   );
-};
+}
 
 export default QuestionList;
-
